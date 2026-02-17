@@ -26,22 +26,18 @@ Return:
 2) Why wrong
 3) How to fix
 """
+response = client.responses.create(
+    model="gpt-4.1-mini",
+    input=prompt
+)
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a helpful math teacher."},
-            {"role": "user", "content": prompt}
-        ]
-    )
+result = response.output_text
 
-    return jsonify({
-        "result": response.choices[0].message.content
-    })
-
+return jsonify({"result": result})
 @app.route("/")
 def home():
     return "AI server running"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
