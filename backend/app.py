@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from openai import OpenAI
+import google.generativeai as genai
 import os
 
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 app = Flask(__name__)
 CORS(app)
@@ -25,10 +26,9 @@ Return:
 2) Why wrong
 3) How to fix
 """
-
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt
+response = model.generate_content(prompt)
+result = response.text
+return jsonify({"result": result})
     )
 
     result = response.output_text
