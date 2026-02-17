@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
-from dotenv import load_dotenv
 from openai import OpenAI
+import os
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
@@ -26,17 +25,20 @@ Return:
 2) Why wrong
 3) How to fix
 """
-response = client.responses.create(
-    model="gpt-4.1-mini",
-    input=prompt
-)
 
-result = response.output_text
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt
+    )
 
-return jsonify({"result": result})
+    result = response.output_text
+    return jsonify({"result": result})
+
+
 @app.route("/")
 def home():
     return "AI server running"
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
