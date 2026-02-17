@@ -1,44 +1,49 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import re
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+
+# load API key
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
 CORS(app)
 
-# ===== SIMPLE AI LOGIC =====
-def analyze_mistake(answer):
-
-    answer = answer.lower()
-
-    if len(answer.strip()) < 5:
-        return "Careless mistake", "Your answer is too short — you likely rushed."
-
-    if "because" not in answer and "=>" not in answer:
-        return "Logical reasoning mistake", "You gave an answer without explaining reasoning."
-
-    math_symbols = ["=", "+", "-", "*", "/", "^"]
-    if not any(sym in answer for sym in math_symbols):
-        return "Wrong method selection", "You used explanation but no mathematical method."
-
-    if re.search(r"\d+\s*=\s*\d+\s*\+\s*\d+", answer):
-        return "Concept misunderstanding", "You are misunderstanding equality concepts."
-
-    return "Correct reasoning", "Your reasoning structure looks acceptable."
-
-
-# ===== API =====
 @app.route("/analyze", methods=["POST"])
 def analyze():
     data = request.json
-    text = data.get("text", "")
+    answer = data.get("answer", "")
 
-    label, feedback = analyze_mistake(text)
+    prompt = f"""
+You are an experienced math teacher.
+Analyze the student's solution and explain their mistakes simply.
+
+Student answer:
+{answer}
+
+Return:
+1) What is wrong
+2) Why wrong
+3) How to fix
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful math teacher."},
+            {"role": "user", "content": prompt}
+        ]
+    )
 
     return jsonify({
-        "type": label,
-        "feedback": feedback
+        "result": response.choices[0].message.content
     })
 
+@app.route("/")
+def home():
+    return "AI server running"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
