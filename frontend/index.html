@@ -31,7 +31,7 @@ async function analyze() {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ text: text })
+        body: JSON.stringify({ answer: text })
     });
 
     const data = await response.json();
